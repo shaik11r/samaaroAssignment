@@ -46,6 +46,7 @@ const getAllUserDetails = async (req, res) => {
         userId: user._id,
         username: user.username,
         onlineStatus: user.onlineStatus,
+        isBlocked: user.isBlocked,
       };
     });
     return res.status(200).send({
@@ -87,6 +88,7 @@ const kickUser = async (req, res) => {
       });
     }
     await sessionModel.deleteOne({ userId });
+    await userModel.findByIdAndUpdate({ _id: userId }, { $set: { onlineStatus: "offline" } });
     return res.status(200).json({ message: `User with Id: ${userId} is kicked sucessfully` });
   } catch (error) {
     console.log(error);
@@ -99,7 +101,7 @@ const kickUser = async (req, res) => {
 const blockUser = async (req, res) => {
   try {
     const { userId } = req.body;
-    const adminUser = await userModel.findone({ _id: req.currentUser.userId });
+    const adminUser = await userModel.findOne({ _id: req.currentUser.userId });
     const isAdmin = adminUser.isAdmin;
     if (!isAdmin) {
       return res.status(403).json({
@@ -129,13 +131,7 @@ const blockUser = async (req, res) => {
 const signUp = async (req, res) => {
   const { username, email, password, isAdmin } = req.body;
   const existingUser = await userModel.findOne({ email: email });
-  if (isAdmin === true) {
-    if (username !== "nadeenShaik" || username !== "admin") {
-      return res.status(400).json({
-        error: "sorry your not admin",
-      });
-    }
-  }
+
   if (existingUser && existingUser.isBlocked === true) {
     return res.status(400).json({
       error: "sorry you were blocked",
@@ -151,6 +147,13 @@ const signUp = async (req, res) => {
     return res.status(400).json({
       error: "username already taken",
     });
+  }
+  if (isAdmin === true) {
+    if (username !== "nadeenShaik" || username !== "admin") {
+      return res.status(400).json({
+        error: "sorry your not admin",
+      });
+    }
   }
   const hashPassword = bcrypt.hashSync(password, 10);
   const newUser = new userModel({
@@ -176,7 +179,7 @@ const signin = async (req, res) => {
         error: "user not found",
       });
     }
-    if (existingUser&&existingUser.isBlocked === true) {
+    if (existingUser && existingUser.isBlocked === true) {
       return res.status(403).json({
         error: "you were blocked",
       });
