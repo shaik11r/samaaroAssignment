@@ -8,7 +8,7 @@ const UserContextProvider = ({ children }) => {
   const navigate = useNavigate();
 
   const signUpFunction = async (email, username, password) => {
-    const response = await fetch("http://localhost:5000/api/signup", {
+    const response = await fetch("https://chatbackendapi.onrender.com/api/signup", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -29,7 +29,7 @@ const UserContextProvider = ({ children }) => {
   };
 
   const signInFunction = async (email, password) => {
-    const response = await fetch("http://localhost:5000/api/signin", {
+    const response = await fetch("https://chatbackendapi.onrender.com/api/signin", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -9,10 +9,11 @@ const DashBoard = () => {
   const [data, setData] = useState([]);
   const { token } = useContext(userContext);
   const navigate = useNavigate();
-
+  // const URL = "https://chatbackendapi.onrender.com/";
+  const URL = "http://localhost:5000";
   const getUserDetails = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/userProfile", {
+      const response = await fetch(`${URL}/api/userProfile`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -39,7 +40,7 @@ const DashBoard = () => {
       console.error("User details not available");
       return;
     }
-    const socket = io("http://localhost:5000", {
+    const socket = io(`${URL}`, {
       auth: {
         token: user._id,
       },
@@ -59,7 +60,7 @@ const DashBoard = () => {
 
   const getAlluserDetails = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/allusers", {
+      const response = await fetch(`${URL}/api/allusers`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -82,7 +83,7 @@ const DashBoard = () => {
 
   const handleKickUser = async (userId) => {
     try {
-      const response = await fetch("http://localhost:5000/api/kickuser", {
+      const response = await fetch(`${URL}/api/kickuser`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -100,7 +101,7 @@ const DashBoard = () => {
 
   const blockUser = async (userId) => {
     try {
-      const response = await fetch("http://localhost:5000/api/blockuser", {
+      const response = await fetch(`${URL}/api/blockuser`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -137,19 +138,26 @@ const DashBoard = () => {
           <p className="bg-green-500 w-fit rounded p-2 font-semibold">{user?.username}</p>
         </div>
         {data?.map((ele) => (
-          <div key={ele.userId} className="flex border-none w-50 justify-between m-2">
-            <p className="font-semibold p-2 w-20">{ele.username}</p>
+          <div key={ele.userId} className={`flex border-none w-50 justify-between m-2 `}>
+            <p
+              className={`font-semibold p-2 max-w-12 ${
+                ele.isBlocked == true ? "bg-gray-300 rounded w-fit font-mono" : ""
+              }`}>
+              {ele.username}
+            </p>
             {user.isAdmin && (
               <>
                 <button
                   className="bg-blue-400 w-fit rounded p-2 font-mono"
+                  disabled={ele.isBlocked}
                   onClick={() => {
                     handleKickUser(ele.userId);
                   }}>
                   kick
                 </button>
                 <button
-                  className="bg-yellow-500 w-fit rounded p-2 font-mono "
+                  className={`bg-yellow-500 w-fit rounded p-2 font-mono `}
+                  disabled={ele.isBlocked}
                   onClick={() => {
                     blockUser(ele.userId);
                   }}>
