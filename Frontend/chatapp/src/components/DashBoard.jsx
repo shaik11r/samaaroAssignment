@@ -9,8 +9,8 @@ const DashBoard = () => {
   const [data, setData] = useState([]);
   const { token } = useContext(userContext);
   const navigate = useNavigate();
-  // const URL = "https://chatbackendapi.onrender.com/";
-  const URL = "http://localhost:5000";
+  const URL = "https://chatbackendapi.onrender.com";
+  // const URL = "http://localhost:5000";
   const getUserDetails = async () => {
     try {
       const response = await fetch(`${URL}/api/userProfile`, {
