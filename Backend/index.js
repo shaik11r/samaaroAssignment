@@ -30,27 +30,28 @@ const io = require("socket.io")(server, {
     exposedHeaders: "*",
   },
 });
-
-io.use((socket, next) => {
-  const token = socket.handshake.auth.token;
-  if (token) {
-    socket.userId = token;
-    return next();
-  }
-});
-
+const onlineUsers = new Set();
 io.on("connection", async (socket) => {
-  // console.log("a user connected with userId", socket.userId);
-
-  socket.on("userStatus", async ({ userId, status }) => {
-    await userModel.findByIdAndUpdate({ _id: userId }, { $set: { onlineStatus: status } });
+  socket.use((packet, next) => {
+    const token = socket.handshake.auth.token;
+    if (token) {
+      socket.userId = token;
+      return next();
+    }
+    return next(new Error("Unauthorized"));
   });
-  socket.on("disconnect", async () => {
-    await userModel.findByIdAndUpdate(
-      { _id: socket.userId },
-      { $set: { onlineStatus: "offline" } }
-    );
-    // console.log("a user disconnected with", socket.userId);
+
+  socket.on("online", (userId) => {
+    // console.log(`user with ${userId} is online`);
+    onlineUsers.add(userId);
+    io.emit("updateOnlineUsers", Array.from(onlineUsers));
+  });
+  socket.on("disconnect", () => {
+    if (socket.userId) {
+      console.log("a user disconnected with", socket.userId);
+      onlineUsers.delete(socket.userId);
+      io.emit("updateOnlineUsers", Array.from(onlineUsers));
+    }
   });
 });
 

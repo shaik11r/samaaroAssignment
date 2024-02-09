@@ -5,10 +5,12 @@ const userContext = createContext({});
 
 const UserContextProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem("authtoken"));
+  const [message, setMessage] = useState("");
   const navigate = useNavigate();
-
+  // const URL = "https://chatbackendapi.onrender.com"; BACKEND DEPLOYEMENT LINK IT IS WORKING
+  const URL = "http://localhost:5000";
   const signUpFunction = async (email, username, password) => {
-    const response = await fetch("https://chatbackendapi.onrender.com/api/signup", {
+    const response = await fetch(`${URL}/api/signup`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -20,16 +22,21 @@ const UserContextProvider = ({ children }) => {
       }),
     });
     const data = await response.json();
-    if (data.error) {
+    if (data.errors && data.errors.length > 0) {
+      alert(data.errors[0].msg);
+    } else if (data.error) {
       alert(data.error);
     } else {
-      console.log(data.message);
-      navigate("/signin");
+      setMessage(data.message);
+      setTimeout(() => {
+        navigate("/signin");
+        setMessage("");
+      }, 1000);
     }
   };
 
   const signInFunction = async (email, password) => {
-    const response = await fetch("https://chatbackendapi.onrender.com/api/signin", {
+    const response = await fetch(`${URL}/api/signin`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -41,19 +48,24 @@ const UserContextProvider = ({ children }) => {
     });
     const data = await response.json();
     const token = response.headers.get("authtoken");
-    if (data.error) {
+    if (data.errors && data.errors.length > 0) {
+      alert(data.errors[0].msg);
+    } else if (data.error) {
       alert(data.error);
-    }
-     else {
+    } else {
       console.log(data.message, token);
       localStorage.setItem("authtoken", token);
       setToken(token);
-      navigate("/dashboard");
+      setMessage(data.message);
+      setTimeout(() => {
+        navigate("/dashboard");
+        setMessage("");
+      }, 1000);
     }
   };
 
   return (
-    <userContext.Provider value={{ signUpFunction, signInFunction, token }}>
+    <userContext.Provider value={{ signUpFunction, signInFunction, token, message }}>
       {children}
     </userContext.Provider>
   );
