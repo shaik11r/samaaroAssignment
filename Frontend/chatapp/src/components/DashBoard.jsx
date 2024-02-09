@@ -5,59 +5,44 @@ import { useNavigate } from "react-router-dom";
 
 const DashBoard = () => {
   const [user, setUser] = useState("");
-  const [sockett, setSockett] = useState(null);
+  const [socket, setSocket] = useState(null);
   const [data, setData] = useState([]);
   const { token } = useContext(userContext);
   const navigate = useNavigate();
-  const URL = "https://chatbackendapi.onrender.com";
-  // const URL = "http://localhost:5000";
-  const getUserDetails = async () => {
-    try {
-      const response = await fetch(`${URL}/api/userProfile`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          authtoken: token,
-        },
-      });
-      const userData = await response.json();
-      if (!response.ok) {
-        if (response.status === 401) {
-          navigate("/signin");
-          return;
-        }
-      }
-      setUser(userData.userDetails);
-      console.log(userData.userDetails);
-      establishSocketConnection(userData.userDetails);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  const [onlineUsers, setOnlineUsers] = useState([]);
+  // const URL = "https://chatbackendapi.onrender.com"; BACKEND DEPLOYEMENT LINK IT IS WORKING
+  const URL = "http://localhost:5000";
 
-  const establishSocketConnection = (user) => {
+ 
+  useEffect(() => {
+    getUserDetails();
+    getAlluserDetails();
+  }, []); // Fetch user details and all users only once on component mount
+  useEffect(() => {
     if (!user || !user._id) {
-      console.error("User details not available");
       return;
     }
-    const socket = io(`${URL}`, {
+    establishSocketConnection(user);
+    return () => {
+      if (socket) {
+        socket.disconnect();
+      }
+    };
+  }, [user]);
+
+    const establishSocketConnection = (user) => {
+    const newsocket = io(`${URL}`, {
       auth: {
         token: user._id,
       },
     });
-
-    socket.on("connect", () => {
-      console.log("Socket connected");
-      socket.emit("userStatus", { userId: user._id, status: "online" });
+    newsocket.emit("online", user._id);
+    newsocket.on("updateOnlineUsers", (onlineUsers) => {
+      setOnlineUsers(onlineUsers);
     });
-
-    socket.on("disconnect", () => {
-      console.log("Socket disconnected");
-      socket.emit("userStatus", { userId: user._id, status: "offline" });
-    });
-    setSockett(socket);
+    setSocket(newsocket);
   };
-
+  
   const getAlluserDetails = async () => {
     try {
       const response = await fetch(`${URL}/api/allusers`, {
@@ -74,7 +59,6 @@ const DashBoard = () => {
           return;
         }
       }
-      console.log(responseData);
       setData(responseData.data);
     } catch (error) {
       console.log(error);
@@ -116,19 +100,28 @@ const DashBoard = () => {
     }
   };
 
-  useEffect(() => {
-    getUserDetails();
-    getAlluserDetails();
-  }, []); // Fetch user details and all users only once on component mount
-
-  useEffect(() => {
-    return () => {
-      if (sockett) {
-        sockett.disconnect();
-        console.log("socket disconnted");
+  const getUserDetails = async () => {
+    try {
+      const response = await fetch(`${URL}/api/userProfile`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          authtoken: token,
+        },
+      });
+      const userData = await response.json();
+      if (!response.ok) {
+        if (response.status === 401) {
+          navigate("/signin");
+          return;
+        }
       }
-    };
-  }, [sockett]);
+      setUser(userData.userDetails);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <div className="max-w-[1200px] mx-auto">
       <div className="text-white text-3xl ">DashBoard</div>
@@ -167,11 +160,11 @@ const DashBoard = () => {
             )}
             <p
               className={`${
-                ele.onlineStatus === "online"
+                onlineUsers.includes(ele.userId)
                   ? "bg-green-600 rounded w-fit p-2 font-mono px-3"
                   : "bg-red-600 rounded w-fit p-2 font-mono"
               }`}>
-              {ele.onlineStatus}
+              {onlineUsers.includes(ele.userId) ? "online" : "offline"}
             </p>
           </div>
         ))}

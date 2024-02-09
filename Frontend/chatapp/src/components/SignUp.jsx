@@ -6,11 +6,32 @@ const SignUp = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
-  const { signUpFunction } = useContext(userContext);
+
+  const [errors, setErrors] = useState({});
+  const { signUpFunction, message } = useContext(userContext);
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(email);
-    signUpFunction(email, username, password);
+    if (validateForm()) {
+      signUpFunction(email, username, password);
+    }
+  };
+  const validateForm = () => {
+    let errors = {};
+    let isValid = true;
+    if (!email) {
+      errors.email = "email is required";
+      isValid = false;
+    }
+    if (!password) {
+      errors.password = "password is required";
+      isValid = false;
+    }
+    if (!username) {
+      errors.username = "username is required";
+      isValid = false;
+    }
+    setErrors(errors);
+    return isValid;
   };
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -35,7 +56,9 @@ const SignUp = () => {
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                required
               />
+              {errors.email && <p className="text-red-500 text-xs italic">{errors.email}</p>}
             </div>
             <div className="mb-6">
               <label for="password" className="block text-gray-700 text-sm font-bold mb-2">
@@ -48,7 +71,9 @@ const SignUp = () => {
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 "
                 onChange={(e) => setPassword(e.target.value)}
                 value={password}
+                required
               />
+              {errors.password && <p className="text-red-500 text-xs italic">{errors.password}</p>}
             </div>
             <div className="mb-6">
               <label for="username" className="block text-gray-700 text-sm font-bold mb-2">
@@ -61,7 +86,9 @@ const SignUp = () => {
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 "
                 onChange={(e) => setUsername(e.target.value)}
                 value={username}
+                required
               />
+              {errors.username && <p className="text-red-500 text-xs italic">{errors.username}</p>}
             </div>
             <div>
               <button
@@ -78,6 +105,7 @@ const SignUp = () => {
                   login
                 </Link>
               </div>
+              {message && <p className="text-green-500 text-sm italic">{message}</p>}
             </div>
           </form>
         </div>

@@ -164,7 +164,7 @@ const signUp = async (req, res) => {
   });
   await newUser.save();
   res.status(200).json({
-    message: "user created",
+    message: "new user registered",
   });
 };
 

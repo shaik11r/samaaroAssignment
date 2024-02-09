@@ -5,17 +5,39 @@ import { userContext } from "../Providers/UserContext";
 const Signin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { signInFunction } = useContext(userContext);
+  const [errors, setErrors] = useState({});
+  const { signInFunction, message } = useContext(userContext);
+
   const handleOnSubmit = (e) => {
     e.preventDefault();
-    signInFunction(email, password);
+    if (validateForm()) {
+      signInFunction(email, password);
+    }
   };
+
+  const validateForm = () => {
+    let errors = {};
+    let isValid = true;
+
+    if (!email) {
+      errors.email = "email is required";
+      isValid = false;
+    }
+    if (!password) {
+      errors.password = "Password is required";
+      isValid = false;
+    }
+    setErrors(errors);
+    return isValid;
+  };
+
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = "visible";
     };
   }, []);
+
   return (
     <div className="relative h-screen ">
       <div className="absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
@@ -35,7 +57,9 @@ const Signin = () => {
                 onChange={(e) => {
                   setEmail(e.target.value);
                 }}
+                required
               />
+              {errors.email && <p className="text-red-500 text-xs italic">{errors.email}</p>}
             </div>
             <div className="mb-6">
               <label for="password" className="block text-gray-700 text-sm font-bold mb-2">
@@ -51,6 +75,7 @@ const Signin = () => {
                   setPassword(e.target.value);
                 }}
               />
+              {errors.password && <p className="text-red-500 text-xs italic">{errors.password}</p>}
             </div>
             <div>
               <button
@@ -67,6 +92,7 @@ const Signin = () => {
                   register here
                 </Link>
               </div>
+              {message && <p className="text-green-500 text-sm italic">{message}</p>}
             </div>
           </form>
         </div>
