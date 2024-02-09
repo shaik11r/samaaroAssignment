@@ -89,7 +89,7 @@ const kickUser = async (req, res) => {
     }
     await sessionModel.deleteOne({ userId });
     await userModel.findByIdAndUpdate({ _id: userId }, { $set: { onlineStatus: "offline" } });
-    return res.status(200).json({ message: `User with Id: ${userId} is kicked sucessfully` });
+    return res.status(200).json({ message: `User is kicked sucessfully` });
   } catch (error) {
     console.log(error);
     return res.status(500).json({
@@ -106,6 +106,12 @@ const blockUser = async (req, res) => {
     if (!isAdmin) {
       return res.status(403).json({
         error: "only admins can block users",
+      });
+    }
+    const anotherUser = await userModel.findOne({ _id: userId });
+    if (anotherUser.isAdmin) {
+      return res.status(403).json({
+        error: "admins cant block another admins",
       });
     }
     await sessionModel.deleteOne({ userId });

@@ -13,7 +13,6 @@ const DashBoard = () => {
   // const URL = "https://chatbackendapi.onrender.com"; BACKEND DEPLOYEMENT LINK IT IS WORKING
   const URL = "http://localhost:5000";
 
- 
   useEffect(() => {
     getUserDetails();
     getAlluserDetails();
@@ -30,7 +29,7 @@ const DashBoard = () => {
     };
   }, [user]);
 
-    const establishSocketConnection = (user) => {
+  const establishSocketConnection = (user) => {
     const newsocket = io(`${URL}`, {
       auth: {
         token: user._id,
@@ -42,7 +41,7 @@ const DashBoard = () => {
     });
     setSocket(newsocket);
   };
-  
+
   const getAlluserDetails = async () => {
     try {
       const response = await fetch(`${URL}/api/allusers`, {
@@ -77,6 +76,7 @@ const DashBoard = () => {
       });
       const responseData = await response.json();
       console.log(responseData);
+      alert(responseData.message);
       getAlluserDetails();
     } catch (error) {
       console.log(error);
@@ -95,6 +95,7 @@ const DashBoard = () => {
       });
       const responseData = await response.json();
       console.log(responseData);
+      alert(responseData.error);
     } catch (error) {
       console.log(error);
     }
@@ -112,6 +113,7 @@ const DashBoard = () => {
       const userData = await response.json();
       if (!response.ok) {
         if (response.status === 401) {
+          alert(userData.error);
           navigate("/signin");
           return;
         }
